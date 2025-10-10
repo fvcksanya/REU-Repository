@@ -1,0 +1,101 @@
+import java.util.*;
+
+// Класс для представления графа
+class Graph {
+    private int V; // Количество вершин
+    private LinkedList<Integer>[] adj; // Список смежности
+
+    // Конструктор
+    public Graph(int v) {
+        V = v;
+        adj = new LinkedList[v];
+        for (int i = 0; i < v; ++i) {
+            adj[i] = new LinkedList();
+        }
+    }
+
+    // Метод для добавления ребра
+    public void addEdge(int v, int w) {
+        adj[v].add(w);
+        adj[w].add(v); // Для неориентированного графа
+    }
+
+    // Метод для вывода графа
+    public void printGraph() {
+        for (int i = 0; i < V; i++) {
+            System.out.print("Вершина " + i + " соединена с: ");
+            for (Integer neighbor : adj[i]) {
+                System.out.print(neighbor + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    // Обход в глубину (DFS)
+    public void DFS(int start) {
+        boolean[] visited = new boolean[V];
+        System.out.print("DFS обход: ");
+        DFSUtil(start, visited);
+        System.out.println();
+    }
+
+    private void DFSUtil(int v, boolean[] visited) {
+        visited[v] = true;
+        System.out.print(v + " ");
+
+        for (Integer neighbor : adj[v]) {
+            if (!visited[neighbor]) {
+                DFSUtil(neighbor, visited);
+            }
+        }
+    }
+
+    // Обход в ширину (BFS)
+    public void BFS(int start) {
+        boolean[] visited = new boolean[V];
+        Queue<Integer> queue = new LinkedList<>();
+
+        visited[start] = true;
+        queue.add(start);
+
+        System.out.print("BFS обход: ");
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            System.out.print(current + " ");
+
+            for (Integer neighbor : adj[current]) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    queue.add(neighbor);
+                }
+            }
+        }
+        System.out.println();
+    }
+}
+
+// Пример использования
+public class Main {
+    public static void main(String[] args) {
+        // Создаем граф с 5 вершинами
+        Graph graph = new Graph(5);
+
+        // Добавляем ребра
+        graph.addEdge(0, 1);
+        graph.addEdge(0, 4);
+        graph.addEdge(1, 2);
+        graph.addEdge(1, 3);
+        graph.addEdge(1, 4);
+        graph.addEdge(2, 3);
+        graph.addEdge(3, 4);
+
+        // Выводим граф
+        graph.printGraph();
+        System.out.println();
+
+        // Выполняем обходы
+        graph.DFS(0);
+        graph.BFS(0);
+    }
+}
