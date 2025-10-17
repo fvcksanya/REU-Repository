@@ -1,0 +1,307 @@
+import java.util.*;
+
+public class TSP {
+    private int[][] graph;
+    private int n;
+    private int minCost;
+    private List<Integer> bestPath;
+
+    public TSP(int[][] adjacencyMatrix) {
+        this.graph = adjacencyMatrix;
+        this.n = adjacencyMatrix.length;
+        this.minCost = Integer.MAX_VALUE;
+        this.bestPath = new ArrayList<>();
+    }
+
+    // Метод полного перебора
+    public void bruteForceTSP() {
+        List<Integer> cities = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            cities.add(i);
+        }
+        
+        minCost = Integer.MAX_VALUE;
+        bestPath.clear();
+        
+        // Генерируем все перестановки
+        permute(cities, 0);
+        
+        if (minCost != Integer.MAX_VALUE) {
+            System.out.println("Лучший маршрут (полный перебор): " + bestPath);
+            System.out.println("Стоимость: " + minCost);
+        } else {
+            System.out.println("Решение не найдено!");
+        }
+    }
+    
+    private void permute(List<Integer> arr, int k) {
+        for (int i = k; i < arr.size(); i++) {
+            Collections.swap(arr, i, k);
+            permute(arr, k + 1);
+            Collections.swap(arr, k, i);
+        }
+        if (k == arr.size() - 1) {
+            calculateCost(new ArrayList<>(arr));
+        }
+    }
+    
+    private void calculateCost(List<Integer> path) {
+        int cost = 0;
+        
+        // Проверяем путь от первого до последнего города
+        for (int i = 0; i < n - 1; i++) {
+            if (graph[path.get(i)][path.get(i + 1)] == 0) {
+                return; // Нет пути между городами
+            }
+            cost += graph[path.get(i)][path.get(i + 1)];
+        }
+        
+        // Проверяем возврат в начальный город
+        if (graph[path.get(n - 1)][path.get(0)] == 0) {
+            return;
+        }
+        cost += graph[path.get(n - 1)][path.get(0)];
+        
+        if (cost < minCost) {
+            minCost = cost;
+            bestPath = new ArrayList<>(path);
+            bestPath.add(path.get(0)); // Добавляем возврат в начало
+        }
+    }
+
+    // Метод динамического программирования
+    public void dpTSP() {
+        int totalMask = (1 << n) - 1;
+        int[][] dp = new int[totalMask + 1][n];
+        int[][] parent = new int[totalMask + 1][n];
+        
+        // Инициализация
+        for (int i = 0; i <= totalMask; i++) {
+            Arrays.fill(dp[i], Integer.MAX_VALUE);
+            Arrays.fill(parent[i], -1);
+        }
+        
+        // Базовый случай: посещен только один город
+        for (int i = 0; i < n; i++) {
+            dp[1 << i][i] = 0;
+        }
+        
+        // Заполнение таблицы DP
+        for (int mask = 1; mask <= totalMask; mask++) {
+            for (int last = 0; last < n; last++) {
+                if (dp[mask][last] == Integer.MAX_VALUE) continue;
+                
+                for (int next = 0; next < n; next++) {
+                    if ((mask & (1 << next)) != 0) continue; // Город уже посещен
+                    if (graph[last][next] == 0) continue; // Нет пути
+                    
+                    int newMask = mask | (1 << next);
+                    int newCost = dp[mask][last] + graph[last][next];
+                    
+                    if (newCost < dp[newMask][next]) {
+                        dp[newMask][next] = newCost;
+                        parent[newMask][next] = last;
+                    }
+                }
+            }
+        }
+        
+        // Находим минимальную стоимость
+        minCost = Integer.MAX_VALUE;
+        int lastCity = -1;
+        
+        for (int i = 0; i < n; i++) {
+            if (dp[totalMask][i] != Integer.MAX_VALUE && graph[i][0] != 0) {
+                int totalCost = dp[totalMask][i] + graph[i][0];
+                if (totalCost < minCost) {
+                    minCost = totalCost;
+                    lastCity = i;
+                }
+            }
+        }
+        
+        // Восстанавливаем путь
+        if (minCost != Integer.MAX_VALUE) {
+            bestPath = new ArrayList<>();
+            int mask = totalMask;
+            int current = lastCity;
+            
+            // Восстанавливаем путь в обратном порядке
+            Stack<Integer> stack = new Stack<>();
+            while (current != -1) {
+                stack.push(current);
+                int prev = parent[mask][current];
+                mask ^= (1 << current);
+                current = prev;
+            }
+            
+            while (!stack.isEmpty()) {
+                bestPath.add(stack.pop());
+            }
+            bestPath.add(bestPath.get(0)); // Замыкаем цикл
+            
+            System.out.println("Лучший маршрут (динамическое программирование): " + bestPath);
+            System.out.println("Стоимость: " + minCost);
+        } else {
+            System.out.println("Решение не найдено!");
+        }
+    }
+
+    // Жадный алгоритм (ближайший сосед)
+    public void greedyTSP() {
+        boolean[] visited = new boolean[n];
+        List<Integer> path = new ArrayList<>();
+        int current = 0;
+        int totalCost = 0;
+        
+        visited[current] = true;
+        path.add(current);
+        
+        for (int i = 0; i < n - 1; i++) {
+            int nextCity = -1;
+            int minDist = Integer.MAX_VALUE;
+            
+            // Ищем ближайшего непосещенного соседа
+            for (int j = 0; j < n; j++) {
+                if (!visited[j] && graph[current][j] != 0 && graph[current][j] < minDist) {
+                    minDist = graph[current][j];
+                    nextCity = j;
+                }
+            }
+            
+            if (nextCity == -1) {
+                System.out.println("Жадный алгоритм: решение не найдено!");
+                return;
+            }
+            
+            totalCost += minDist;
+            current = nextCity;
+            visited[current] = true;
+            path.add(current);
+        }
+        
+        // Возвращаемся в начальный город
+        if (graph[current][0] != 0) {
+            totalCost += graph[current][0];
+            path.add(0);
+            
+            System.out.println("Жадный алгоритм (ближайший сосед): " + path);
+            System.out.println("Стоимость: " + totalCost);
+        } else {
+            System.out.println("Жадный алгоритм: невозможно вернуться в начальный город!");
+        }
+    }
+
+    // Метод ветвей и границ (упрощенный)
+    public void branchAndBoundTSP() {
+        minCost = Integer.MAX_VALUE;
+        bestPath.clear();
+        
+        boolean[] visited = new boolean[n];
+        List<Integer> currentPath = new ArrayList<>();
+        currentPath.add(0);
+        visited[0] = true;
+        
+        branchAndBound(0, 0, 1, visited, currentPath);
+        
+        if (minCost != Integer.MAX_VALUE) {
+            System.out.println("Лучший маршрут (ветви и границы): " + bestPath);
+            System.out.println("Стоимость: " + minCost);
+        } else {
+            System.out.println("Решение не найдено!");
+        }
+    }
+    
+    private void branchAndBound(int current, int cost, int count, boolean[] visited, List<Integer> path) {
+        // Если все города посещены
+        if (count == n) {
+            // Проверяем возврат в начальный город
+            if (graph[current][0] != 0) {
+                int totalCost = cost + graph[current][0];
+                if (totalCost < minCost) {
+                    minCost = totalCost;
+                    bestPath = new ArrayList<>(path);
+                    bestPath.add(0);
+                }
+            }
+            return;
+        }
+        
+        // Отсечение по верхней границе
+        if (cost >= minCost) {
+            return;
+        }
+        
+        // Рекурсивно посещаем все непосещенные города
+        for (int i = 0; i < n; i++) {
+            if (!visited[i] && graph[current][i] != 0) {
+                visited[i] = true;
+                path.add(i);
+                
+                branchAndBound(i, cost + graph[current][i], count + 1, visited, path);
+                
+                visited[i] = false;
+                path.remove(path.size() - 1);
+            }
+        }
+    }
+
+    // Вывод матрицы смежности
+    public void printGraph() {
+        System.out.println("Матрица смежности:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                System.out.print(graph[i][j] + "\t");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        // Пример 1: Полностью связный граф
+        int[][] graph1 = {
+            {0, 10, 15, 20},
+            {10, 0, 35, 25},
+            {15, 35, 0, 30},
+            {20, 25, 30, 0}
+        };
+
+        // Пример 2: Граф с отсутствующими путями
+        int[][] graph2 = {
+            {0, 5, 0, 10},
+            {5, 0, 3, 0},
+            {0, 3, 0, 1},
+            {10, 0, 1, 0}
+        };
+
+        System.out.println("=== ПРИМЕР 1 ===");
+        TSP tsp1 = new TSP(graph1);
+        tsp1.printGraph();
+        
+        System.out.println("1. Жадный алгоритм:");
+        tsp1.greedyTSP();
+        
+        System.out.println("\n2. Динамическое программирование:");
+        tsp1.dpTSP();
+        
+        System.out.println("\n3. Метод ветвей и границ:");
+        tsp1.branchAndBoundTSP();
+        
+        System.out.println("\n4. Полный перебор:");
+        tsp1.bruteForceTSP();
+
+        System.out.println("\n=== ПРИМЕР 2 ===");
+        TSP tsp2 = new TSP(graph2);
+        tsp2.printGraph();
+        
+        System.out.println("1. Жадный алгоритм:");
+        tsp2.greedyTSP();
+        
+        System.out.println("\n2. Динамическое программирование:");
+        tsp2.dpTSP();
+        
+        System.out.println("\n3. Метод ветвей и границ:");
+        tsp2.branchAndBoundTSP();
+    }
+}
