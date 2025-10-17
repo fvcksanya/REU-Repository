@@ -1,0 +1,256 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+#include <bitset>
+
+using namespace std;
+
+class TSP {
+private:
+    vector<vector<int>> graph;
+    int n;
+
+public:
+    TSP(vector<vector<int>> adjacencyMatrix) {
+        graph = adjacencyMatrix;
+        n = graph.size();
+    }
+
+    // Метод полного перебора (brute force)
+    int bruteForceTSP() {
+        vector<int> cities;
+        for (int i = 0; i < n; i++) {
+            cities.push_back(i);
+        }
+
+        int minCost = INT_MAX;
+        vector<int> bestPath;
+
+        // Перебираем все перестановки городов
+        do {
+            int currentCost = 0;
+            bool validPath = true;
+
+            // Вычисляем стоимость пути
+            for (int i = 0; i < n - 1; i++) {
+                if (graph[cities[i]][cities[i + 1]] == 0) {
+                    validPath = false;
+                    break;
+                }
+                currentCost += graph[cities[i]][cities[i + 1]];
+            }
+
+            // Возвращаемся в начальный город
+            if (validPath && graph[cities[n - 1]][cities[0]] != 0) {
+                currentCost += graph[cities[n - 1]][cities[0]];
+
+                if (currentCost < minCost) {
+                    minCost = currentCost;
+                    bestPath = cities;
+                }
+            }
+
+        } while (next_permutation(cities.begin() + 1, cities.end()));
+
+        // Выводим лучший маршрут
+        if (minCost != INT_MAX) {
+            cout << "Лучший маршрут (полный перебор): ";
+            for (int city : bestPath) {
+                cout << city << " ";
+            }
+            cout << bestPath[0] << endl;
+            cout << "Стоимость: " << minCost << endl;
+        } else {
+            cout << "Решение не найдено!" << endl;
+            minCost = -1;
+        }
+
+        return minCost;
+    }
+
+    // Метод динамического программирования (более эффективный)
+    int dpTSP() {
+        int totalMask = (1 << n) - 1;
+        vector<vector<int>> dp(totalMask + 1, vector<int>(n, -1));
+
+        // Инициализация
+        for (int i = 0; i < n; i++) {
+            dp[1 << i][i] = 0;
+        }
+
+        // Заполнение таблицы DP
+        for (int mask = 1; mask <= totalMask; mask++) {
+            for (int last = 0; last < n; last++) {
+                if (dp[mask][last] == -1) continue;
+
+                for (int nextCity = 0; nextCity < n; nextCity++) {
+                    if (mask & (1 << nextCity)) continue; // Город уже посещен
+                    if (graph[last][nextCity] == 0) continue; // Нет пути
+
+                    int newMask = mask | (1 << nextCity);
+                    int newCost = dp[mask][last] + graph[last][nextCity];
+
+                    if (dp[newMask][nextCity] == -1 || newCost < dp[newMask][nextCity]) {
+                        dp[newMask][nextCity] = newCost;
+                    }
+                }
+            }
+        }
+
+        // Находим минимальную стоимость полного цикла
+        int minCost = INT_MAX;
+        int lastCity = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (dp[totalMask][i] != -1 && graph[i][0] != 0) {
+                int totalCost = dp[totalMask][i] + graph[i][0];
+                if (totalCost < minCost) {
+                    minCost = totalCost;
+                    lastCity = i;
+                }
+            }
+        }
+
+        // Восстанавливаем путь
+        if (minCost != INT_MAX) {
+            vector<int> path;
+            int mask = totalMask;
+            int current = lastCity;
+
+            path.push_back(current);
+            while (mask != (1 << 0)) {
+                for (int prev = 0; prev < n; prev++) {
+                    if (prev == current) continue;
+                    if (!(mask & (1 << prev))) continue;
+
+                    if (dp[mask ^ (1 << current)][prev] != -1 && 
+                        graph[prev][current] != 0 &&
+                        dp[mask][current] == dp[mask ^ (1 << current)][prev] + graph[prev][current]) {
+                        current = prev;
+                        mask ^= (1 << path.back());
+                        path.push_back(current);
+                        break;
+                    }
+                }
+            }
+
+            reverse(path.begin(), path.end());
+            cout << "Лучший маршрут (динамическое программирование): ";
+            for (int city : path) {
+                cout << city << " ";
+            }
+            cout << path[0] << endl;
+            cout << "Стоимость: " << minCost << endl;
+        } else {
+            cout << "Решение не найдено!" << endl;
+            minCost = -1;
+        }
+
+        return minCost;
+    }
+
+    // Жадный алгоритм (ближайший сосед)
+    int greedyTSP() {
+        vector<bool> visited(n, false);
+        vector<int> path;
+        int current = 0;
+        int totalCost = 0;
+
+        visited[current] = true;
+        path.push_back(current);
+
+        for (int i = 0; i < n - 1; i++) {
+            int nextCity = -1;
+            int minDist = INT_MAX;
+
+            // Ищем ближайшего непосещенного соседа
+            for (int j = 0; j < n; j++) {
+                if (!visited[j] && graph[current][j] != 0 && graph[current][j] < minDist) {
+                    minDist = graph[current][j];
+                    nextCity = j;
+                }
+            }
+
+            if (nextCity == -1) {
+                cout << "Жадный алгоритм: решение не найдено!" << endl;
+                return -1;
+            }
+
+            totalCost += minDist;
+            current = nextCity;
+            visited[current] = true;
+            path.push_back(current);
+        }
+
+        // Возвращаемся в начальный город
+        if (graph[current][0] != 0) {
+            totalCost += graph[current][0];
+            path.push_back(0);
+
+            cout << "Жадный алгоритм (ближайший сосед): ";
+            for (int city : path) {
+                cout << city << " ";
+            }
+            cout << "\nСтоимость: " << totalCost << endl;
+        } else {
+            cout << "Жадный алгоритм: невозможно вернуться в начальный город!" << endl;
+            return -1;
+        }
+
+        return totalCost;
+    }
+
+    // Вывод матрицы смежности
+    void printGraph() {
+        cout << "Матрица смежности:" << endl;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cout << graph[i][j] << "\t";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+};
+
+int main() {
+    // Пример 1: Полностью связный граф
+    vector<vector<int>> graph1 = {
+        {0, 10, 15, 20},
+        {10, 0, 35, 25},
+        {15, 35, 0, 30},
+        {20, 25, 30, 0}
+    };
+
+    // Пример 2: Граф с отсутствующими путями
+    vector<vector<int>> graph2 = {
+        {0, 5, 0, 10},
+        {5, 0, 3, 0},
+        {0, 3, 0, 1},
+        {10, 0, 1, 0}
+    };
+
+    cout << "=== ПРИМЕР 1 ===" << endl;
+    TSP tsp1(graph1);
+    tsp1.printGraph();
+    
+    cout << "1. ";
+    tsp1.greedyTSP();
+    cout << "2. ";
+    tsp1.dpTSP();
+    cout << "3. ";
+    tsp1.bruteForceTSP();
+
+    cout << "\n=== ПРИМЕР 2 ===" << endl;
+    TSP tsp2(graph2);
+    tsp2.printGraph();
+    
+    cout << "1. ";
+    tsp2.greedyTSP();
+    cout << "2. ";
+    tsp2.dpTSP();
+    // bruteForce для больших графов может быть медленным
+
+    return 0;
+}
