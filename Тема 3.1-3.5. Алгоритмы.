@@ -1,0 +1,581 @@
+Сортировка выбором (Selection Sort)
+
+#include <iostream>
+using namespace std;
+
+void selection_sort(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        int min_index = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_index]) {
+                min_index = j;
+            }
+        }
+        // Обмен элементов
+        int temp = arr[i];
+        arr[i] = arr[min_index];
+        arr[min_index] = temp;
+    }
+}
+
+int main() {
+    int test_array[] = {64, 25, 12, 22, 11};
+    int n = sizeof(test_array) / sizeof(test_array[0]);
+    
+    cout << "Исходный массив: ";
+    for (int i = 0; i < n; i++) {
+        cout << test_array[i] << " ";
+    }
+    cout << endl;
+    
+    selection_sort(test_array, n);
+    
+    cout << "Отсортированный массив: ";
+    for (int i = 0; i < n; i++) {
+        cout << test_array[i] << " ";
+    }
+    cout << endl;
+    
+    return 0;
+}
+
+
+
+
+
+Сортировка обменом (пузырьком) (Bubble Sort)
+
+
+
+
+def bubble_sort(arr):
+    n = len(arr)
+    # Проходим по всем элементам массива
+    for i in range(n-1):
+        # Последний элемент на каждой итерации уже на своем месте
+        for j in range(0, n-i-1):
+            # Сравниваем соседние элементы
+            if arr[j] > arr[j+1]:
+                # Меняем местами, если они стоят в неправильном порядке
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+
+def print_array(arr):
+    for i in range(len(arr)):
+        print(arr[i], end=" ")
+    print()
+
+if __name__ == "__main__":
+    arr = [64, 34, 25, 12, 22, 11, 90]
+    n = len(arr)
+    
+    print("Исходный массив:")
+    print_array(arr)
+    
+    bubble_sort(arr)
+    
+    print("Отсортированный массив:")
+    print_array(arr)
+
+
+
+
+
+Сортировка вставками (Insertion Sort)
+
+
+
+#include <iostream>
+using namespace std;
+
+// Метод для сортировки массива
+void insertionSort(int array[], int n) {
+    // Проходим по всем элементам массива, начиная со второго
+    for (int i = 1; i < n; i++) {
+        int key = array[i]; // Текущий элемент, который нужно вставить
+        int j = i - 1; // Индекс предыдущего элемента
+        
+        // Перемещаем элементы array[0..i-1], которые больше key
+        // на одну позицию вперед
+        while (j >= 0 && array[j] > key) {
+            array[j + 1] = array[j];
+            j = j - 1;
+        }
+        array[j + 1] = key; // Вставляем key на правильное место
+    }
+}
+
+// Метод для вывода массива
+void printArray(int array[], int n) {
+    for (int i = 0; i < n; i++) {
+        cout << array[i] << " ";
+    }
+    cout << endl;
+}
+
+// Основной метод для тестирования
+int main() {
+    int array[] = {12, 11, 13, 5, 6};
+    int n = sizeof(array) / sizeof(array[0]);
+    
+    cout << "Исходный массив:" << endl;
+    printArray(array, n);
+    
+    insertionSort(array, n);
+    
+    cout << "Отсортированный массив:" << endl;
+    printArray(array, n);
+    
+    return 0;
+}
+
+
+
+
+Сортировка слиянием (Merge Sort)
+
+
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Функция для слияния двух отсортированных массивов
+vector<int> merge(vector<int>& left, vector<int>& right) {
+    vector<int> result;
+    int i = 0, j = 0;
+    
+    // Пока есть элементы в обоих массивах
+    while (i < left.size() && j < right.size()) {
+        if (left[i] < right[j]) {
+            result.push_back(left[i]);
+            i++;
+        } else {
+            result.push_back(right[j]);
+            j++;
+        }
+    }
+    
+    // Добавляем оставшиеся элементы из левого массива
+    while (i < left.size()) {
+        result.push_back(left[i]);
+        i++;
+    }
+    
+    // Добавляем оставшиеся элементы из правого массива
+    while (j < right.size()) {
+        result.push_back(right[j]);
+        j++;
+    }
+    
+    return result;
+}
+
+// Функция сортировки слиянием
+vector<int> mergeSort(vector<int>& arr) {
+    // Базовый случай: массив длиной 0 или 1 уже отсортирован
+    if (arr.size() <= 1) {
+        return arr;
+    }
+    
+    // Находим середину массива
+    int mid = arr.size() / 2;
+    
+    // Делим массив на две части
+    vector<int> left(arr.begin(), arr.begin() + mid);
+    vector<int> right(arr.begin() + mid, arr.end());
+    
+    // Рекурсивно сортируем каждую часть
+    left = mergeSort(left);
+    right = mergeSort(right);
+    
+    // Сливаем отсортированные части
+    return merge(left, right);
+}
+
+// Функция для вывода массива
+void printArray(vector<int>& arr) {
+    for (int i = 0; i < arr.size(); i++) {
+        cout << arr[i];
+        if (i != arr.size() - 1) {
+            cout << ", ";
+        }
+    }
+    cout << endl;
+}
+
+int main() {
+    vector<int> array = {38, 27, 43, 3, 9, 82, 10};
+    
+    cout << "Исходный массив: ";
+    printArray(array);
+    
+    vector<int> sorted_array = mergeSort(array);
+    
+    cout << "Отсортированный массив: ";
+    printArray(sorted_array);
+    
+    return 0;
+}
+
+
+
+
+Сортировка Шелла (Shellsort)
+
+
+
+def shell_sort(arr):
+    n = len(arr)
+    # Начинаем с большого промежутка и уменьшаем его
+    gap = n // 2
+    while gap > 0:
+        # Проходим по всем элементам с текущим промежутком
+        for i in range(gap, n):
+            # Сохраняем текущий элемент
+            temp = arr[i]
+            j = i
+            
+            # Сдвигаем элементы, которые больше temp, вправо
+            while j >= gap and arr[j - gap] > temp:
+                arr[j] = arr[j - gap]
+                j -= gap
+            
+            # Вставляем temp на правильное место
+            arr[j] = temp
+        
+        # Уменьшаем промежуток
+        gap //= 2
+
+# Функция для вывода массива
+def print_array(arr):
+    for num in arr:
+        print(num, end=" ")
+    print()
+
+# Пример использования
+if __name__ == "__main__":
+    arr = [12, 34, 54, 2, 3]
+    print("Исходный массив:", end=" ")
+    print_array(arr)
+    
+    shell_sort(arr)
+    
+    print("Отсортированный массив:", end=" ")
+    print_array(arr)
+
+
+
+
+
+Быстрая сортировка (Quick Sort)
+
+
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Метод для разбиения массива
+int partition(vector<int>& array, int low, int high) {
+    // Выбираем последний элемент в качестве опорного
+    int pivot = array[high];
+    int i = (low - 1); // Индекс меньшего элемента
+    
+    for (int j = low; j < high; j++) {
+        // Если текущий элемент меньше или равен опорному
+        if (array[j] <= pivot) {
+            i++;
+            // Поменять местами array[i] и array[j]
+            swap(array[i], array[j]);
+        }
+    }
+    
+    // Поменять местами array[i+1] и array[high] (опорный элемент)
+    swap(array[i + 1], array[high]);
+    return i + 1;
+}
+
+// Метод для сортировки массива
+void quickSort(vector<int>& array, int low, int high) {
+    if (low < high) {
+        // pi - это индекс разбиения, array[pi] находится на своем месте
+        int pi = partition(array, low, high);
+        
+        // Отсортировать элементы до и после разбиения
+        quickSort(array, low, pi - 1);
+        quickSort(array, pi + 1, high);
+    }
+}
+
+// Вспомогательный метод для вывода массива
+void printArray(const vector<int>& array) {
+    for (int value : array) {
+        cout << value << " ";
+    }
+    cout << endl;
+}
+
+// Основной метод для запуска сортировки
+int main() {
+    vector<int> array = {10, 7, 8, 9, 1, 5};
+    
+    cout << "Исходный массив:" << endl;
+    printArray(array);
+    
+    quickSort(array, 0, array.size() - 1);
+    
+    cout << "\nОтсортированный массив:" << endl;
+    printArray(array);
+    
+    return 0;
+}
+
+
+
+
+
+Пирамидальная сортировка 
+
+
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Функция для преобразования поддерева в кучу
+void heapify(vector<int>& arr, int n, int i) {
+    int largest = i; // Инициализируем наибольший элемент как корень
+    int left = 2 * i + 1; // левый = 2*i + 1
+    int right = 2 * i + 2; // правый = 2*i + 2
+    
+    // Проверяем существует ли левый дочерний элемент больший, чем корень
+    if (left < n && arr[i] < arr[left]) {
+        largest = left;
+    }
+    
+    // Проверяем существует ли правый дочерний элемент больший, чем корень
+    if (right < n && arr[largest] < arr[right]) {
+        largest = right;
+    }
+    
+    // Меняем корень, если нужно
+    if (largest != i) {
+        swap(arr[i], arr[largest]); // своп
+        // Применяем heapify к корню
+        heapify(arr, n, largest);
+    }
+}
+
+// Основная функция для пирамидальной сортировки
+void heapSort(vector<int>& arr) {
+    int n = arr.size();
+    
+    // Построение max-heap
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(arr, n, i);
+    }
+    
+    // Один за другим извлекаем элементы
+    for (int i = n - 1; i > 0; i--) {
+        swap(arr[i], arr[0]); // меняем корень с последним элементом
+        heapify(arr, i, 0);
+    }
+}
+
+// Функция для вывода массива
+void printArray(const vector<int>& arr) {
+    for (int value : arr) {
+        cout << value << " ";
+    }
+    cout << endl;
+}
+
+// Пример использования:
+int main() {
+    vector<int> arr = {12, 11, 13, 5, 6, 7};
+    
+    cout << "Исходный массив: ";
+    printArray(arr);
+    
+    heapSort(arr);
+    
+    cout << "Отсортированный массив: ";
+    printArray(arr);
+    
+    return 0;
+}
+
+
+
+
+Последовательный (линейный) поиск
+
+
+#include <iostream>
+using namespace std;
+
+// Функция линейного поиска
+int linearSearch(int arr[], int size, int target) {
+    // Проходим по всем элементам массива
+    for(int i = 0; i < size; i++) {
+        // Если нашли искомый элемент
+        if(arr[i] == target) {
+            return i; // Возвращаем индекс найденного элемента
+        }
+    }
+    return -1; // Возвращаем -1, если элемент не найден
+}
+
+int main() {
+    // Создаем массив
+    int array[] = {3, 5, 2, 7, 9, 1, 4};
+    int size = sizeof(array) / sizeof(array[0]); // Вычисляем размер массива
+    int target = 7; // Искомое значение
+    
+    // Вызываем функцию поиска
+    int result = linearSearch(array, size, target);
+    
+    // Выводим результат
+    if(result != -1) {
+        cout << "Элемент найден на позиции: " << result << endl;
+    } else {
+        cout << "Элемент не найден" << endl;
+    }
+    
+    return 0;
+}
+
+
+
+
+Бинарный (двоичный, дихотомический) поиск
+
+
+from typing import List
+
+def binary_search(array: List[int], target: int) -> int:
+    left = 0
+    right = len(array) - 1
+    
+    while left <= right:
+        mid = (left + right) // 2  # Более простой способ вычисления середины
+        
+        if array[mid] == target:
+            return mid
+        elif array[mid] > target:
+            right = mid - 1
+        else:
+            left = mid + 1
+    
+    return -1
+
+# Пример использования с несколькими тестами
+if __name__ == "__main__":
+    sorted_array = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+    
+    # Тестируем разные случаи
+    test_cases = [7, 1, 19, 8]  # Существующие и несуществующие элементы
+    
+    for target in test_cases:
+        result = binary_search(sorted_array, target)
+        if result != -1:
+            print(f"Элемент {target} найден на позиции: {result}")
+        else:
+            print(f"Элемент {target} не найден")
+
+
+
+
+Интерполирующий поиск
+
+def interpolation_search(arr, lo, hi, x):
+    if (lo <= hi and x >= arr[lo] and x <= arr[hi]):
+        pos = lo + (((hi - lo) * (x - arr[lo])) // (arr[hi] - arr[lo]))
+        
+        # Состояние, если цель найдена
+        if arr[pos] == x:
+            return pos
+        
+        # Если x больше, x находится в правом подмассиве
+        if arr[pos] < x:
+            return interpolation_search(arr, pos + 1, hi, x)
+        
+        # Если x меньше, x находится в левом подмассиве
+        if arr[pos] > x:
+            return interpolation_search(arr, lo, pos - 1, x)
+    
+    return -1
+
+
+
+
+Поиск по Фибоначчи
+
+
+def fibonacci(n):
+    if n <= 1:
+        return n
+    fib = [0] * (n + 2)
+    fib[0] = 0
+    fib[1] = 1
+    for i in range(2, n + 1):
+        fib[i] = fib[i - 1] + fib[i - 2]
+    return fib[n]
+
+def fibonacci_search(arr, x):
+    n = len(arr)
+    
+    # Находим наименьшее число Фибоначчи, большее или равное n
+    fib_m2 = 0  # (m-2)'е число Фибоначчи
+    fib_m1 = 1  # (m-1)'е число Фибоначчи
+    fib_m = fib_m2 + fib_m1
+    
+    # Находим m такое, что F[m] >= n
+    while fib_m < n:
+        fib_m2 = fib_m1
+        fib_m1 = fib_m
+        fib_m = fib_m2 + fib_m1
+    
+    # Маркеры для элементов, которые не входят в массив
+    offset = -1
+    
+    # Поиск
+    while fib_m > 1:
+        # Проверяем возможный индекс
+        i = min(offset + fib_m2, n - 1)
+        
+        # Если x больше элемента, переходим к правому подмассиву
+        if arr[i] < x:
+            fib_m = fib_m1
+            fib_m1 = fib_m2
+            fib_m2 = fib_m - fib_m1
+            offset = i
+        
+        # Если x меньше элемента, переходим к левому подмассиву
+        elif arr[i] > x:
+            fib_m = fib_m2
+            fib_m1 = fib_m1 - fib_m2
+            fib_m2 = fib_m - fib_m1
+        
+        # Элемент найден
+        else:
+            return i
+    
+    # Проверяем последний элемент
+    if fib_m1 and offset + 1 < n and arr[offset + 1] == x:
+        return offset + 1
+    
+    return -1  # Элемент не найден
+
+def main():
+    x = 85
+    arr = [10, 22, 35, 40, 45, 50, 80, 82, 85, 90, 100]
+    result = fibonacci_search(arr, x)
+    
+    if result != -1:
+        print(f"Элемент найден на позиции: {result}")
+    else:
+        print("Элемент не найден")
+
+if __name__ == "__main__":
+    main()
